@@ -1,5 +1,3 @@
-# Databricks notebook source
-# COMMAND ----------
 
 CREATE DATABASE IF NOT EXISTS DELTA_TRAINING;
 
