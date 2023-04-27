@@ -1,5 +1,6 @@
 # Databricks notebook source
 
+
 # COMMAND ----------
 
 import requests
@@ -12,7 +13,9 @@ params = {
  "Authorization" : "Bearer dapiddd37aacca39507c033f9dcbcd52ff01",
  "Content-Type" : "application/json"
  }
-wf_json=json.open(../workflows/)
+file_location='../databricks_workflow/wf_empl_36hr_flag.json'
+f=open(file_location)
+wf_json=json.load(f)
 response = requests.post(
 url = url,
 headers = params,
@@ -22,3 +25,5 @@ data = json.dumps(wf_json) # converting payload to json
 print(json.dumps(json.loads(response.text), indent = 4))
 
 # COMMAND ----------
+
+

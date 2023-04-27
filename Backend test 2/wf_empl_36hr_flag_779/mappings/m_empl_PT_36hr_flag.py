@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run "./udf_informatica"
+# %run "./udf_informatica"
 
 # COMMAND ----------
 
@@ -11,8 +11,8 @@ spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
 
 
 # COMMAND ----------
-# DBTITLE 1, EMPLOYEE_PROFILE_DAY_PSOFT_0
 
+# DBTITLE 1, EMPLOYEE_PROFILE_DAY_PSOFT_0
 
 df_0=spark.sql("""
     SELECT
@@ -89,8 +89,8 @@ df_0=spark.sql("""
 df_0.createOrReplaceTempView("EMPLOYEE_PROFILE_DAY_PSOFT_0")
 
 # COMMAND ----------
-# DBTITLE 1, EMPL_EMPL_LOC_WK_1
 
+# DBTITLE 1, EMPL_EMPL_LOC_WK_1
 
 df_1=spark.sql("""
     SELECT
@@ -114,8 +114,8 @@ df_1=spark.sql("""
 df_1.createOrReplaceTempView("EMPL_EMPL_LOC_WK_1")
 
 # COMMAND ----------
-# DBTITLE 1, SQ_Shortcut_to_EMPLOYEE_PROFILE_2
 
+# DBTITLE 1, SQ_Shortcut_to_EMPLOYEE_PROFILE_2
 
 df_2=spark.sql("""
     SELECT
@@ -226,16 +226,15 @@ df_2=spark.sql("""
 df_2.createOrReplaceTempView("SQ_Shortcut_to_EMPLOYEE_PROFILE_2")
 
 # COMMAND ----------
-# DBTITLE 1, EXPTRANS_3
 
+# DBTITLE 1, EXPTRANS_3
 
 df_3=spark.sql("""
     SELECT
         PERIOD_DT AS PERIOD_DT,
         EMPLOYEE_ID AS EMPLOYEE_ID,
         LOCATION_ID AS LOCATION_ID,
-        TO_DECIMAL(HOURS_WORKED / 13,
-        4) AS HOURS_WORKED11,
+         cast(HOURS_WORKED / 13 as DECIMAL(38,4)) AS HOURS_WORKED11,
         IFF(TOT_HOURS_WORKED / 13 > 36.00,
         1,
         0) AS Flag,
@@ -246,8 +245,8 @@ df_3=spark.sql("""
 df_3.createOrReplaceTempView("EXPTRANS_3")
 
 # COMMAND ----------
-# DBTITLE 1, EXP_ROUND_NET_SALES_COST_4
 
+# DBTITLE 1, EXP_ROUND_NET_SALES_COST_4
 
 df_4=spark.sql("""
     SELECT
@@ -256,20 +255,15 @@ df_4=spark.sql("""
         INSTR(HOURS_WORKED11,
         '.') + 3,
         1) = '5' 
-        AND TO_DECIMAL(HOURS_WORKED11,
-        4) > 0,
-        TO_DECIMAL(HOURS_WORKED11,
-        4) + 0.005,
+        AND cast(HOURS_WORKED11 as DECIMAL(38,4)) > 0,
+        cast(HOURS_WORKED11 as DECIMAL(38,4)) + 0.005,
         SUBSTR(HOURS_WORKED11,
         INSTR(HOURS_WORKED11,
         '.') + 3,
         1) = '5' 
-        AND TO_DECIMAL(HOURS_WORKED11,
-        4) < 0,
-        TO_DECIMAL(HOURS_WORKED11,
-        4) - 0.005,
-        TO_DECIMAL(HOURS_WORKED11,
-        4)),
+        AND cast(HOURS_WORKED11 as DECIMAL(38,4)) < 0,
+        cast(HOURS_WORKED11 as DECIMAL(38,4)) - 0.005,
+        cast(HOURS_WORKED11 as DECIMAL(38,4))),
         2) AS out_HOURS_WORKED_COST,
         Monotonically_Increasing_Id AS Monotonically_Increasing_Id 
     FROM
@@ -278,8 +272,8 @@ df_4=spark.sql("""
 df_4.createOrReplaceTempView("EXP_ROUND_NET_SALES_COST_4")
 
 # COMMAND ----------
-# DBTITLE 1, EARNINGS_ID_5
 
+# DBTITLE 1, EARNINGS_ID_5
 
 df_5=spark.sql("""
     SELECT
@@ -296,8 +290,8 @@ df_5=spark.sql("""
 df_5.createOrReplaceTempView("EARNINGS_ID_5")
 
 # COMMAND ----------
-# DBTITLE 1, EMPL_EMPL_LOC_WK_PSOFT_6
 
+# DBTITLE 1, EMPL_EMPL_LOC_WK_PSOFT_6
 
 df_6=spark.sql("""
     SELECT
@@ -321,8 +315,8 @@ df_6=spark.sql("""
 df_6.createOrReplaceTempView("EMPL_EMPL_LOC_WK_PSOFT_6")
 
 # COMMAND ----------
-# DBTITLE 1, EMPLOYEE_PROFILE_DAY_7
 
+# DBTITLE 1, EMPLOYEE_PROFILE_DAY_7
 
 df_7=spark.sql("""
     SELECT
@@ -399,8 +393,8 @@ df_7=spark.sql("""
 df_7.createOrReplaceTempView("EMPLOYEE_PROFILE_DAY_7")
 
 # COMMAND ----------
-# DBTITLE 1, EMPL_PT_36HR_FLAG
 
+# DBTITLE 1, EMPL_PT_36HR_FLAG
 
 spark.sql("""INSERT INTO EMPL_PT_36HR_FLAG SELECT E3.PERIOD_DT AS WEEK_DT,
 E3.EMPLOYEE_ID AS EMPLOYEE_ID,

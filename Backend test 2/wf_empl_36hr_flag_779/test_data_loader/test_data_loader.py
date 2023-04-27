@@ -22,59 +22,90 @@ allergy=['Sneezing','Cough','Red-eyes']
 med_cond=['Distemper','Heartworms','Allergies','SkinInfection']
 txn=['Cash','Debit-Card','Paytm']
 brand= ['Orijen','Nestlé','Mammoth']
+chars=['FLAG','TYPE','STATUS']
 
 # COMMAND ----------
 
-generate_random_data_udf = udf(lambda x:generate_random_data(x), StringType())
-def generate_random_data(col_name):
+generate_random_data_udf = udf(lambda x,y:generate_random_data(x,y), StringType())
+def generate_random_data(col_name,col_type):
     sub_col=col_name.split('_')
-    for sub in sub_col:
-        if sub in number and sub!='PHONE' :
-             return fake.random_number()
-        elif sub=='PHONE':
-             return fake.phone_number()
-    for sub in sub_col:
-        if sub in date:
-             return fake.date()
-        if sub in amt:
-                return fake.random_int(1,50)    
-        if 'PET' in sub_col:
-             if 'TYPE' in col_name:
-                return random.choice((TYPE))
-             elif 'GENDER' in col_name:
-                return random.choice(['M','F'])
-             elif 'NAME' in col_name:
-                return random.choice(dog_names)
-             elif 'WEIGHT' in col_name:
-                return fake.random_int(10,50)
-             elif 'ALLERGY' in col_name:
-                return random.choice((allergy))
-        if 'BREED' in sub_col:
-             return random.choice(breed)
-        if 'FLAG' in col_name:
-                return fake.random.choice([0,1])
-        if 'ADDRESS' in col_name:
-                return fake.address()
-        if 'CITY' in col_name:
-                return fake.city()
-        if 'MEDICAL' in col_name:
-                return random.choice((med_cond))
-        if 'TXN' in col_name:
-                return random.choice((txn))
-        if 'BRAND' in col_name:
-                return random.choice((brand))       
-    else:
-        return str(fake.name())
+    if col_type=="int" or col_type=="bigint":
+        for sub in sub_col:
+            if sub in number and sub!='PHONE' :
+                 return fake.random_number()
+            elif sub=='PHONE':
+                 return fake.phone_number()
+            elif sub in amt:
+                return fake.random_int(1,50) 
+            else:
+                return fake.random_number()
+    elif col_type=="timestamp" or col_type=="date":
+        for sub in sub_col:
+            if sub in date:
+                return fake.date()
+            else:
+                return fake.date()
+    elif col_type=="float":
+        return fake.pyfloat(min_value=0, max_value=1000, right_digits=2)
+    elif col_type=="string":
+        for sub in sub_col:
+            if sub in chars:
+                return fake.random_letter()
+            if sub in date:
+                return fake.date()
+            if 'PET' in sub_col:
+                 if 'TYPE' in col_name:
+                    return random.choice((TYPE))
+                 elif 'GENDER' in col_name:
+                    return random.choice(['M','F'])
+                 elif 'NAME' in col_name:
+                    return random.choice(dog_names)
+                 elif 'WEIGHT' in col_name:
+                    return fake.random_int(10,50)
+                 elif 'ALLERGY' in col_name:
+                    return random.choice((allergy))
+            if 'BREED' in sub_col:
+                 return random.choice(breed)
+            if 'FLAG' in col_name:
+                    return fake.random.choice([0,1])
+            if 'ADDRESS' in col_name:
+                    return fake.address()
+            if 'CITY' in col_name:
+                    return fake.city()
+            if 'MEDICAL' in col_name:
+                    return random.choice((med_cond))
+            if 'TXN' in col_name:
+                    return random.choice((txn))
+            if 'BRAND' in col_name:
+                    return random.choice((brand))       
+            else:
+                return str(fake.word())
 
 # COMMAND ----------
 
-file_location = dbutils.widgets.get('file_location')
-no_of_rows = dbutils.widgets.get('no_of_rows')
+import os
+#  os.chdir("../")
+file_location = os.path.join(os.getcwd(),'wf_empl_36hr_flag_sourceDDL.ipynb')
+no_of_rows = 1000
+
 
 # COMMAND ----------
 
-with open(file_location) as F:
+os.getcwd()
+os.listdir()
+path=os.path.join(os.getcwd(),os.listdir()[0])
+path
+os.chdir(path)
+os.getcwd()
+file_location=os.path.join(os.getcwd(),'wf_empl_36hr_flag_sourceDDL')
+file_location
+
+
+# COMMAND ----------
+
+with open("../wf_empl_36hr_flag_sourceDDL_txt.py") as F:
     contents = F.read()
+# contents=dbutils.fs.head('Workspace/Repos/sarang.dahiwale@nucleusteq.com/Amarican-Express-dev/Backend test 2/wf_empl_36hr_flag_779/test_data_loader/wf_empl_36hr_flag_sourceDDL.py')
 cont = contents.split(";\n")
 if re.search("DATABASE", cont[0]) != None:
     cont.pop(0)  
@@ -100,10 +131,20 @@ for val in cont:
 for table in tables:
     df = spark.sql(f"""select * from {table}""")
     df1 = spark.range(no_of_rows).withColumn('id', lit(0).cast(IntegerType()))
+    viewName=""
     for col in df.dtypes:
-        df1=df1.withColumn(col[0],generate_random_data_udf(lit(col[0])))
+        df1=df1.withColumn(col[0],generate_random_data_udf(lit(col[0]),lit(col[1])))
         df1=df1.drop("id")
         df1.createOrReplaceTempView(table.replace('.','_'))
+    df1.display()    
+    viewName=table.replace('.','_')
+#     spark.sql(f"""insert into {table} select * from {viewName}""")
+    df1.write.insertInto(table,overwrite="true");
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from DELTA_TRAINING.EMPLOYEE_PROFILE_DAY;
 
 # COMMAND ----------
 
